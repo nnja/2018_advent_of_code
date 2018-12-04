@@ -4,8 +4,10 @@ AoC helper method and utilities
 
 import os
 import re
-from collections import Counter, defaultdict
+from collections import Counter, defaultdict, namedtuple
+from datetime import datetime
 from itertools import combinations
+from operator import itemgetter
 from pathlib import Path
 from pprint import pprint as pp
 
@@ -75,22 +77,20 @@ def chunks(l, n):
         yield l[i:i + n]
 
 
-def run_tests(func, test_inputs, delim="\n", should_print=False):
+def run_tests(func, test_inputs, delim="\n"):
     """
     Helper function to quickly run small test scenarios
     """
     for test in test_inputs:
         test_input, expected_result = test
 
-        if should_print:
-            print("Testing...", test)
+        log("Testing...", test)
 
         if type(test_input) == str and delim:
             test_input = list(filter(lambda x: x != '', test_input.split(delim)))
 
         result = func(test_input)
 
-        if should_print:
-            print("result was: ", result)
+        log("result was: ", result)
 
         assert result == expected_result
