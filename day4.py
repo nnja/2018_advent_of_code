@@ -1,53 +1,86 @@
 """
 Yuck, day 4. Could use major cleanup.
 """
-
 from util import *
 
 data = get_data(4, split=False)
+data_split = get_data(4)
 
-def p1(input):
-    date_format='%Y-%m-%d %H:%M'
-    p=re.compile(r"\[(.*)\] ([\w\s#]*)\n", flags=re.MULTILINE)
-    guard_p=re.compile(r"Guard #(\d*) begins shift")
-    matches=re.findall(p, input)
+
+def both_alt(input):
+    """
+    Cleaned up version.
+    """
+    lines = sorted(input)
+    guards = defaultdict(lambda: [0] * 60)
+
+    for line in lines:
+        minute, text = re.findall(r'\[\d*-\d*-\d* \d*:(\d*)\] ([\w\s#]*)', line)[0]
+
+        if '#' in text:
+            guard = int(text.split()[1][1:])
+        elif 'asleep' in text:
+            start_sleep = int(minute)
+        elif 'wakes' in text:
+            stop_sleep = int(minute)
+            for i in range(start_sleep, stop_sleep):
+                guards[guard][i] += 1
+
+    p1_guard, _ = max([(k, sum(v)) for k, v in guards.items()], key=lambda x: x[1])
+    p1_minute = guards[p1_guard].index(max(guards[p1_guard]))
+    part1 = p1_guard * p1_minute
+
+    p2_guard, p2_max_min = max([(k, max(v)) for k, v in guards.items()], key=lambda x: x[1])
+    p2_minutes = guards[p2_guard].index(p2_max_min)
+    part2 = p2_guard * p2_minutes
+
+    return (part1, part2)
+
+
+def both(input):
+    date_format = '%Y-%m-%d %H:%M'
+    p = re.compile(r"\[(.*)\] ([\w\s#]*)\n", flags=re.MULTILINE)
+    guard_p = re.compile(r"Guard #(\d*) begins shift")
+    matches = re.findall(p, input)
 
     # First things first, sort the records by chronological order.
     matches.sort(key=lambda x: datetime.strptime(x[0], date_format))
 
     dates_map = {}
     dates_to_guards = {}
-    curr_guard=None
+    curr_guard = None
 
-    last_asleep=0
-    last_awake=0
+    last_asleep = 0
+    last_awake = 0
 
     for date, action in matches:
-        date=datetime.strptime(date, date_format)
-        day_of=date.strftime("%Y-%m-%d")
+        date = datetime.strptime(date, date_format)
+        day_of = date.strftime("%Y-%m-%d")
 
         if day_of not in dates_map:
-            dates_map[day_of] =  ['0'] * 60
+            dates_map[day_of] = ['0'] * 60
 
-        minute=date.minute
+        minute = date.minute
 
-        guard_match=re.findall(guard_p, action)
+        guard_match = re.findall(guard_p, action)
 
         if guard_match:
-            curr_guard=guard_match[0]
+            curr_guard = guard_match[0]
 
         if day_of not in dates_to_guards:
-            dates_to_guards[day_of]=curr_guard
+            dates_to_guards[day_of] = curr_guard
 
         # default state is awake
         if action == 'falls asleep':
-            last_asleep=minute
+            last_asleep = minute
             # mark everything before as awake
-            dates_map[day_of][last_awake:last_asleep] = '0' * (last_asleep-last_awake)
+            dates_map[day_of][last_awake:last_asleep] = '0' * \
+                (last_asleep-last_awake)
         elif action == 'wakes up':
-            last_awake=minute
+            last_awake = minute
             # mark everything before as asleep
-            dates_map[day_of][last_asleep:last_awake] = '1' * (last_awake-last_asleep)
+            dates_map[day_of][last_asleep:last_awake] = '1' * \
+                (last_awake-last_asleep)
 
     # tally which guard slept the most
     guards_to_sleep = defaultdict(int)
@@ -60,13 +93,14 @@ def p1(input):
     guard_max_total_sleep = 0
     guard_max_total_sleep_value = 0
     for date, guard in dates_to_guards.items():
-        guards_to_total_sleep[guard] = [sum(map(int, x)) for x in zip(dates_map[date], guards_to_total_sleep[guard])]
-    
+        guards_to_total_sleep[guard] = [sum(map(int, x)) for x in zip(
+            dates_map[date], guards_to_total_sleep[guard])]
+
     max_guard = 0
     curr_max = 0
     max_minute = 0
     for guard, sleep in guards_to_total_sleep.items():
-        max_sleep_per_guard =  max(map(int, guards_to_total_sleep[guard]))
+        max_sleep_per_guard = max(map(int, guards_to_total_sleep[guard]))
         if max_sleep_per_guard > curr_max:
             curr_max = max_sleep_per_guard
             max_guard = guard
@@ -74,8 +108,8 @@ def p1(input):
     part2 = int(max_guard) * int(max_minute)
 
     # maximum minute slept?
-    
-    # for each minute of each date the guard was active, sum all the items in the lists. 
+
+    # for each minute of each date the guard was active, sum all the items in the lists.
     times_asleep = []
     for date in dates_map:
         if dates_to_guards[date] == guard_who_slept_most:
@@ -86,9 +120,11 @@ def p1(input):
     part1 = minute_most_asleep * int(guard_who_slept_most)
     return (part1, part2)
 
-print("Part 1: ", p1(data))
 
-test_input="""
+print("Part 1: ", both(data), " alt: ", both_alt(data_split))
+
+
+test_input = """
 [1518-11-01 00:00] Guard #10 begins shift
 [1518-11-01 00:05] falls asleep
 [1518-11-01 00:25] wakes up
@@ -107,10 +143,11 @@ test_input="""
 [1518-11-05 00:45] falls asleep
 [1518-11-05 00:55] wakes up
 """
-expected_result=(240, 4455)
+expected_result = (240, 4455)
 
-p1_tests=[
+both_tests = [
     (test_input, expected_result)
 ]
 
-run_tests(p1, p1_tests, delim=None)
+run_tests(both, both_tests, delim=None)
+run_tests(both_alt, both_tests)
