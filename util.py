@@ -45,12 +45,12 @@ def local_cache(func):
 
         if filename.is_file():
             with filename.open() as f:
-                content = f.read()
+                content = f.read().strip()
         else:
             content = func(day)
             filename.write_text(content)
 
-        return content.split("\n")[:-1] if should_split else content
+        return content.split("\n") if should_split else content
     return function_wrapper
 
 
