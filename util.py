@@ -7,6 +7,7 @@ import re
 from collections import Counter, defaultdict, namedtuple
 from datetime import datetime
 from itertools import combinations
+from math import floor
 from operator import itemgetter
 from pathlib import Path
 from pprint import pprint as pp
@@ -91,6 +92,6 @@ def run_tests(func, test_inputs, delim="\n"):
 
         result = func(test_input)
 
-        log("result was: ", result)
+        log("expected ", expected_result, " result was: ", result)
 
         assert result == expected_result
