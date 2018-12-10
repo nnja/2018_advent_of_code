@@ -4,10 +4,10 @@ AoC helper method and utilities
 
 import os
 import re
-from collections import Counter, defaultdict, namedtuple
+from collections import Counter, defaultdict, namedtuple, deque
 from datetime import datetime
 from itertools import combinations
-from math import floor
+from math import floor, hypot
 from operator import itemgetter
 from pathlib import Path
 from pprint import pprint as pp
@@ -76,6 +76,11 @@ def chunks(l, n):
     """Yield successive n-sized chunks from l."""
     for i in range(0, len(l), n):
         yield l[i:i + n]
+        
+    
+def extract_ints(a_string):
+    # Helper method posted on the subreddit.
+    return tuple(map(int, re.findall(r'-?\d+', a_string)))
 
 
 def run_tests(func, test_inputs, delim="\n"):
